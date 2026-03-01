@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,7 @@ type Medicine = {
     instructions: string
 }
 
-export default function NewPrescriptionPage() {
+function NewPrescriptionContent() {
     const searchParams = useSearchParams()
     const patientId = searchParams.get('patientId')
     const router = useRouter()
@@ -482,5 +482,13 @@ export default function NewPrescriptionPage() {
 
             </div>
         </div>
+    )
+}
+
+export default function NewPrescriptionPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>}>
+            <NewPrescriptionContent />
+        </Suspense>
     )
 }
