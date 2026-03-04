@@ -73,19 +73,12 @@ export default function DashboardPage() {
 
         fetchDashboardData()
 
-        // Realtime Subscription setup (can be added here to update counts dynamically)
-        const channel = supabase.channel('dashboard-updates')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-                fetchDashboardData() // Refetch on any appointment change
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, () => {
-                fetchDashboardData() // Refetch on any patient change
-            })
-            .subscribe()
+        // Polling fallback to keep data semi-fresh without risking WebSocket crashes in Firefox
+        const interval = setInterval(() => {
+            fetchDashboardData()
+        }, 30000) // Refresh every 30 seconds
 
-        return () => {
-            supabase.removeChannel(channel)
-        }
+        return () => clearInterval(interval)
     }, [])
 
     if (loading) {

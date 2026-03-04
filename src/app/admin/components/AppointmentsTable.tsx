@@ -88,21 +88,12 @@ export default function AppointmentsTable() {
     useEffect(() => {
         fetchAppointments()
 
-        // Real-time subscription to 'appointments' table
-        const channel = supabase.channel('realtime-appointments')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'appointments', filter: `doctor_id=eq.${DOCTOR_ID}` },
-                () => {
-                    // On any change (insert/update/delete), refresh the list
-                    fetchAppointments()
-                }
-            )
-            .subscribe()
+        // Polling fallback to keep appointments fresh without risking WebSocket WSS crashes in Firefox
+        const interval = setInterval(() => {
+            fetchAppointments()
+        }, 30000) // Polling every 30 seconds
 
-        return () => {
-            supabase.removeChannel(channel)
-        }
+        return () => clearInterval(interval)
     }, [])
 
     const updateStatus = async (id: string, newStatus: 'completed' | 'cancelled' | 'pending') => {
