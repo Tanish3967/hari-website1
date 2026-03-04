@@ -26,6 +26,7 @@ export default function RootLayout({
                 var isStrict = false;
                 try { window.localStorage.getItem('__test'); } catch(e) { isStrict = true; }
                 try { if (window.caches) { window.caches.keys().catch(function(){}); } } catch(e) { isStrict = true; }
+                try { document.cookie; } catch(e) { isStrict = true; }
 
                 if (isStrict) {
                   // Firefox Tracking Protection DOMException override
@@ -51,6 +52,7 @@ export default function RootLayout({
                   try { Object.defineProperty(window, 'sessionStorage', { value: mockStorage, writable: true }); } catch (err) {}
                   try { Object.defineProperty(window, 'caches', { value: mockCaches, writable: true }); } catch (err) {}
                   try { Object.defineProperty(window, 'indexedDB', { value: mockIDB, writable: true }); } catch (err) {}
+                  try { Object.defineProperty(document, 'cookie', { get: function() { return ""; }, set: function() {}, configurable: true }); } catch (err) {}
                 }
               } catch (globalErr) {}
             `,
