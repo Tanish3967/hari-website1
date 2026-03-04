@@ -76,6 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                prefetch={false}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`
                   flex items-center px-4 py-3 rounded-xl transition-colors
