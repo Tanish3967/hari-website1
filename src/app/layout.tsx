@@ -23,22 +23,36 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                window.localStorage.getItem('__test');
-                window.sessionStorage.getItem('__test');
-              } catch (e) {
-                // Firefox Tracking Protection DOMException override
-                var memStr = {};
-                var mockStorage = {
-                  getItem: function(k) { return memStr[k] || null; },
-                  setItem: function(k, v) { memStr[k] = v; },
-                  removeItem: function(k) { delete memStr[k]; },
-                  clear: function() { memStr = {}; },
-                  key: function(i) { return Object.keys(memStr)[i] || null; },
-                  get length() { return Object.keys(memStr).length; }
-                };
-                try { Object.defineProperty(window, 'localStorage', { value: mockStorage, writable: true }); } catch (err) {}
-                try { Object.defineProperty(window, 'sessionStorage', { value: mockStorage, writable: true }); } catch (err) {}
-              }
+                var isStrict = false;
+                try { window.localStorage.getItem('__test'); } catch(e) { isStrict = true; }
+                try { if (window.caches) { window.caches.keys().catch(function(){}); } } catch(e) { isStrict = true; }
+
+                if (isStrict) {
+                  // Firefox Tracking Protection DOMException override
+                  var memStr = {};
+                  var mockStorage = {
+                    getItem: function(k) { return memStr[k] || null; },
+                    setItem: function(k, v) { memStr[k] = v; },
+                    removeItem: function(k) { delete memStr[k]; },
+                    clear: function() { memStr = {}; },
+                    key: function(i) { return Object.keys(memStr)[i] || null; },
+                    get length() { return Object.keys(memStr).length; }
+                  };
+                  var mockCaches = {
+                    open: function() { return Promise.resolve({ match: function() { return Promise.resolve(null); }, put: function() { return Promise.resolve(); } }); },
+                    match: function() { return Promise.resolve(null); },
+                    has: function() { return Promise.resolve(false); },
+                    keys: function() { return Promise.resolve([]); },
+                    delete: function() { return Promise.resolve(true); }
+                  };
+                  var mockIDB = { open: function() { return {}; } };
+
+                  try { Object.defineProperty(window, 'localStorage', { value: mockStorage, writable: true }); } catch (err) {}
+                  try { Object.defineProperty(window, 'sessionStorage', { value: mockStorage, writable: true }); } catch (err) {}
+                  try { Object.defineProperty(window, 'caches', { value: mockCaches, writable: true }); } catch (err) {}
+                  try { Object.defineProperty(window, 'indexedDB', { value: mockIDB, writable: true }); } catch (err) {}
+                }
+              } catch (globalErr) {}
             `,
           }}
         />
